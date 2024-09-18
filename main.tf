@@ -1,7 +1,5 @@
 provider "aws" {
-  region = "us-east-1"  # Choose the region where you want to deploy
-  access_key = "AKIAQMEY6IZSSIYKQZUP"
-  secret_key = "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"
+  region = "us-east-1"  # Choose the region where you want to deploy 
 }
 
 resource "aws_instance" "server" {
