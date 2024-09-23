@@ -1,0 +1,90 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull Jenkins Docker image
+      docker_image:
+        name: linksrobot/my-jenkins:custom
+        source: pull
+      when: "'Jenkins' in inventory_hostname"
+
+    - name: Pull SonarQube Docker image
+      docker_image:
+        name: sonarqube
+        source: pull
+      when: "'SonarQube' in inventory_hostname"
+
+    - name: Pull Nexus Docker image
+      docker_image:
+        name: sonatype/nexus3
+        source: pull
+      when: "'Nexus' in inventory_hostname"
+
+    - name: Pull Splunk Docker image
+      docker_image:
+        name: splunk/splunk
+        source: pull
+      when: "'Splunk' in inventory_hostname"
+
+    - name: Pull Grafana Docker image
+      docker_image:
+        name: grafana/grafana
+        source: pull
+      when: "'Grafana' in inventory_hostname"
+
+    - name: Run Jenkins container
+      docker_container:
+        name: jenkins
+        image: linksrobot/my-jenkins:custom
+        state: started
+        ports:
+          - "8080:8080"
+      when: "'Jenkins' in inventory_hostname"
+
+    - name: Run SonarQube container
+      docker_container:
+        name: sonarqube
+        image: sonarqube
+        state: started
+        ports:
+          - "9000:9000"
+      when: "'SonarQube' in inventory_hostname"
+
+    - name: Run Nexus container
+      docker_container:
+        name: nexus
+        image: sonatype/nexus3
+        state: started
+        ports:
+          - "8081:8081"
+      when: "'Nexus' in inventory_hostname"
+
+    - name: Run Splunk container
+      docker_container:
+        name: splunk
+        image: splunk/splunk
+        state: started
+        ports:
+          - "8000:8000"
+      when: "'Splunk' in inventory_hostname"
+
+    - name: Run Grafana container
+      docker_container:
+        name: grafana
+        image: grafana/grafana
+        state: started
+        ports:
+          - "3000:3000"
+      when: "'Grafana' in inventory_hostname"

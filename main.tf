@@ -4,7 +4,9 @@ provider "aws" {
 
 resource "aws_instance" "jenkins" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
+  key_name      = "MobaTermKey"  # Use your key pair name
+  vpc_security_group_ids = ["sg-0767adb689f42d116"]
   tags = {
     Name = "Jenkins"
   }
@@ -21,7 +23,7 @@ resource "aws_instance" "jenkins" {
     connection {
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("~/.ssh/id_rsa")
+      private_key = file("~/.ssh/MobaTermKey.pem")  # Update with the path to your private key file
       host        = self.public_ip
     }
   }
@@ -29,7 +31,9 @@ resource "aws_instance" "jenkins" {
 
 resource "aws_instance" "sonarqube" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
+  key_name      = "MobaTermKey"  # Use your key pair name
+  vpc_security_group_ids = ["sg-0767adb689f42d116"]
   tags = {
     Name = "SonarQube"
   }
@@ -46,7 +50,7 @@ resource "aws_instance" "sonarqube" {
     connection {
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("~/.ssh/id_rsa")
+      private_key = file("~/.ssh/MobaTermKey.pem")  # Update with the path to your private key file
       host        = self.public_ip
     }
   }
@@ -54,7 +58,9 @@ resource "aws_instance" "sonarqube" {
 
 resource "aws_instance" "nexus" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
+  key_name      = "MobaTermKey"  # Use your key pair name
+  vpc_security_group_ids = ["sg-0767adb689f42d116"]
   tags = {
     Name = "Nexus"
   }
@@ -71,7 +77,7 @@ resource "aws_instance" "nexus" {
     connection {
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("~/.ssh/id_rsa")
+      private_key = file("~/.ssh/MobaTermKey.pem")  # Update with the path to your private key file
       host        = self.public_ip
     }
   }
@@ -79,7 +85,9 @@ resource "aws_instance" "nexus" {
 
 resource "aws_instance" "splunk" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
+  key_name      = "MobaTermKey"  
+  vpc_security_group_ids = ["sg-0767adb689f42d116"]
   tags = {
     Name = "Splunk"
   }
@@ -96,7 +104,7 @@ resource "aws_instance" "splunk" {
     connection {
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("~/.ssh/id_rsa")
+      private_key = file("~/.ssh/MobaTermKey.pem")  # Update with the path to your private key file
       host        = self.public_ip
     }
   }
@@ -104,7 +112,9 @@ resource "aws_instance" "splunk" {
 
 resource "aws_instance" "grafana" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
+  key_name      = "MobaTermKey"  
+  vpc_security_group_ids = ["sg-0767adb689f42d116"]
   tags = {
     Name = "Grafana"
   }
@@ -121,7 +131,7 @@ resource "aws_instance" "grafana" {
     connection {
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("~/.ssh/id_rsa")
+      private_key = file("~/.ssh/MobaTermKey.pem")  
       host        = self.public_ip
     }
   }
