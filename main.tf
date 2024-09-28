@@ -4,8 +4,8 @@ provider "aws" {
 # Custom Jenkins Server
 resource "aws_instance" "jenkins" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.medium"
-  key_name      = "MobaTermKey"  
+  instance_type = "t2.large"
+  key_name      = "MobaTermKey"  # Use your key pair name 
   vpc_security_group_ids = ["sg-0767adb689f42d116"]
   tags = {
     Name = "Jenkins"
@@ -17,7 +17,12 @@ resource "aws_instance" "jenkins" {
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
       "sudo systemctl enable docker",
-      "sudo docker run -d -p 8080:8080 linksrobot/my-jenkins:custom"
+      "sudo docker run -d -p 8080:8080 linksrobot/my-jenkins:v2.0",
+      # Install OWASP Dependency-Check
+      "sudo apt-get install -y openjdk-11-jre-headless",
+      "wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.2.1/dependency-check-7.2.1-release.zip",
+      "unzip dependency-check-7.2.1-release.zip -d /opt/dependency-check",
+      "ln -s /opt/dependency-check/bin/dependency-check.sh /usr/local/bin/dependency-check"
     ]
 
     connection {
@@ -113,14 +118,13 @@ resource "aws_instance" "splunk" {
   }
 }
 
-# Grafana Server
-resource "aws_instance" "grafana" {
+resource "aws_instance" "monitoring" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.medium"
   key_name      = "MobaTermKey"  
   vpc_security_group_ids = ["sg-0767adb689f42d116"]
   tags = {
-    Name = "Grafana"
+    Name = "Monitoring"
   }
 
   provisioner "remote-exec" {
@@ -129,7 +133,39 @@ resource "aws_instance" "grafana" {
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
       "sudo systemctl enable docker",
-      "sudo docker run -d -p 3000:3000 grafana/grafana"
+      # Install Prometheus
+      "sudo docker run -d -p 9090:9090 --name prometheus prom/prometheus",
+      # Install Grafana
+      "sudo docker run -d -p 3000:3000 --name grafana grafana/grafana"
+    ]
+
+    connection {
+      type        = "ssh"
+      user        = "ubuntu"
+      private_key = file("~/.ssh/MobaTermKey.pem")  
+      host        = self.public_ip
+    }
+  }
+}
+
+resource "aws_instance" "owasp_zap" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.medium"
+  key_name      = "MobaTermKey"  
+  vpc_security_group_ids = ["sg-0767adb689f42d116"]
+  tags = {
+    Name = "OWASP ZAP"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get update",
+      "sudo apt-get install -y docker.io",
+      "sudo systemctl start docker",
+      "sudo systemctl enable docker",
+      # Install OWASP ZAP
+      "sudo apt-get install -y openjdk-11-jre-headless",
+      "sudo docker run -u zap -p 8080:8080 -i owasp/zap2docker-stable zap.sh -daemon -host 0.0.0.0 -port 8080"
     ]
 
     connection {
@@ -156,6 +192,7 @@ output "instance_ips" {
     sonarqube = aws_instance.sonarqube.public_ip
     nexus    = aws_instance.nexus.public_ip
     splunk   = aws_instance.splunk.public_ip
-    grafana  = aws_instance.grafana.public_ip
+    monitoring  = aws_instance.monitoring.public_ip
+    owasp_zap = aws_instance.owasp_zap.public_ip
   }
 }
