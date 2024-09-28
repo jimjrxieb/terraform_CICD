@@ -13,7 +13,7 @@ resource "aws_instance" "jenkins" {
 
   provisioner "remote-exec" {
     inline = [
-      "set -e",
+      "set -ex",
       "sudo apt-get update",
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
@@ -43,6 +43,7 @@ resource "aws_instance" "sonarqube" {
 
   provisioner "remote-exec" {
     inline = [
+      "set -ex",
       "sudo apt-get update",
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
@@ -71,40 +72,12 @@ resource "aws_instance" "nexus" {
 
   provisioner "remote-exec" {
     inline = [
+      "set -ex",
       "sudo apt-get update",
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
       "sudo systemctl enable docker",
       "sudo docker run -d --name nexus -p 8081:8081 sonatype/nexus3"
-    ]
-
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      private_key = file("~/.ssh/MobaTermKey.pem")  
-      host        = self.public_ip
-    }
-  }
-}
-
-# Splunk server
-resource "aws_instance" "splunk" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.medium"
-  key_name      = "MobaTermKey"  
-  vpc_security_group_ids = ["sg-0767adb689f42d116"]
-  tags = {
-    Name = "Splunk"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "set -e",
-      "sudo apt-get update",
-      "sudo apt-get install -y docker.io",
-      "sudo systemctl start docker",
-      "sudo systemctl enable docker",
-      "sudo docker run -d --name splunk -p 8000:8000 splunk/splunk"
     ]
 
     connection {
@@ -127,6 +100,7 @@ resource "aws_instance" "monitoring" {
 
   provisioner "remote-exec" {
     inline = [
+      "set -ex",
       "sudo apt-get update",
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
@@ -146,35 +120,6 @@ resource "aws_instance" "monitoring" {
   }
 }
 
-resource "aws_instance" "owasp_zap" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.medium"
-  key_name      = "MobaTermKey"  
-  vpc_security_group_ids = ["sg-0767adb689f42d116"]
-  tags = {
-    Name = "OWASP ZAP"
-  }
-
-  provisioner "remote-exec" {
-  inline = [
-    "sudo apt-get update",
-    "sudo apt-get install -y docker.io",
-    "sudo systemctl start docker",
-    "sudo systemctl enable docker",
-    # Install OWASP ZAP dependencies
-    "sudo apt-get install -y openjdk-11-jre-headless",
-    # Run OWASP ZAP container
-    "sudo docker run -d --name owasp_zap -p 8080:8080 -i securecodebox/zap" 
-    ]
-  
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      private_key = file("~/.ssh/MobaTermKey.pem")  
-      host        = self.public_ip
-    }
-  }
-}
 
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -190,8 +135,6 @@ output "instance_ips" {
     jenkins  = aws_instance.jenkins.public_ip
     sonarqube = aws_instance.sonarqube.public_ip
     nexus    = aws_instance.nexus.public_ip
-    splunk   = aws_instance.splunk.public_ip
-    monitoring  = aws_instance.monitoring.public_ip
-    owasp_zap = aws_instance.owasp_zap.public_ip
+    monitoring  = aws_instance.monitoring.public_ip   
   }
 }
