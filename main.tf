@@ -18,13 +18,8 @@ resource "aws_instance" "jenkins" {
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
       "sudo systemctl enable docker",
-      # Install OWASP Dependency-Check
-      "sudo apt-get install -y openjdk-11-jre-headless",
-      "wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.2.1/dependency-check-7.2.1-release.zip",
-      "unzip dependency-check-7.2.1-release.zip -d /opt/dependency-check",
-      "ln -s /opt/dependency-check/bin/dependency-check.sh /usr/local/bin/dependency-check",
-      # Install Custom Jenkins
-      "sudo docker run -d -p 8080:8080 linksrobot/my-jenkins:v2.0",
+      "sudo docker run -d --name jenkins -p 8080:8080 linksrobot/my-jenkins:v2.0",
+      
     ]
 
     connection {
@@ -52,7 +47,7 @@ resource "aws_instance" "sonarqube" {
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
       "sudo systemctl enable docker",
-      "sudo docker run -d -p 9000:9000 sonarqube"
+      "sudo docker run -d --name sonar -p 9000:9000 sonarqube"
     ]
 
     connection {
@@ -80,7 +75,7 @@ resource "aws_instance" "nexus" {
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
       "sudo systemctl enable docker",
-      "sudo docker run -d -p 8081:8081 sonatype/nexus3"
+      "sudo docker run -d --name nexus -p 8081:8081 sonatype/nexus3"
     ]
 
     connection {
@@ -109,7 +104,7 @@ resource "aws_instance" "splunk" {
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
       "sudo systemctl enable docker",
-      "sudo docker run -d -p 8000:8000 splunk/splunk"
+      "sudo docker run -d --name splunk -p 8000:8000 splunk/splunk"
     ]
 
     connection {
@@ -161,16 +156,17 @@ resource "aws_instance" "owasp_zap" {
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get update",
-      "sudo apt-get install -y docker.io",
-      "sudo systemctl start docker",
-      "sudo systemctl enable docker",
-      # Install OWASP ZAP
-      "sudo apt-get install -y openjdk-11-jre-headless",
-      "sudo docker run -u zap -p 8080:8080 -i owasp/zap2docker-stable zap.sh -daemon -host 0.0.0.0 -port 8080"
+  inline = [
+    "sudo apt-get update",
+    "sudo apt-get install -y docker.io",
+    "sudo systemctl start docker",
+    "sudo systemctl enable docker",
+    # Install OWASP ZAP dependencies
+    "sudo apt-get install -y openjdk-11-jre-headless",
+    # Run OWASP ZAP container
+    "sudo docker run -d --name owasp_zap -p 8080:8080 -i securecodebox/zap" 
     ]
-
+  
     connection {
       type        = "ssh"
       user        = "ubuntu"
