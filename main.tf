@@ -13,16 +13,18 @@ resource "aws_instance" "jenkins" {
 
   provisioner "remote-exec" {
     inline = [
+      "set -e",
       "sudo apt-get update",
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
       "sudo systemctl enable docker",
-      "sudo docker run -d -p 8080:8080 linksrobot/my-jenkins:v2.0",
       # Install OWASP Dependency-Check
       "sudo apt-get install -y openjdk-11-jre-headless",
       "wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.2.1/dependency-check-7.2.1-release.zip",
       "unzip dependency-check-7.2.1-release.zip -d /opt/dependency-check",
-      "ln -s /opt/dependency-check/bin/dependency-check.sh /usr/local/bin/dependency-check"
+      "ln -s /opt/dependency-check/bin/dependency-check.sh /usr/local/bin/dependency-check",
+      # Install Custom Jenkins
+      "sudo docker run -d -p 8080:8080 linksrobot/my-jenkins:v2.0",
     ]
 
     connection {
@@ -102,6 +104,7 @@ resource "aws_instance" "splunk" {
 
   provisioner "remote-exec" {
     inline = [
+      "set -e",
       "sudo apt-get update",
       "sudo apt-get install -y docker.io",
       "sudo systemctl start docker",
